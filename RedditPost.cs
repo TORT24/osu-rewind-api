@@ -9,4 +9,5 @@ public class RedditPostInfo
     public string? Pp { get; init; }
     public required string RedditLink { get; init; }
     public string? ReplayLink { get; init; }
+    public required DateTime DatePosted { get; init; }
 }

@@ -14,12 +14,19 @@ public class RedditPostsController : ControllerBase
         _redditHandler = redditHandler;
     }
 
-    [HttpGet(Name = "GetRedditPosts")]
-    [ProducesResponseType(typeof(IEnumerable<RedditPostInfo>), StatusCodes.Status200OK)]
-    [ProducesResponseType(typeof(void), StatusCodes.Status401Unauthorized)]
+    [HttpGet("lastmonthposts")]
+    [ProducesResponseType(typeof(List<RedditPostInfo>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(void), StatusCodes.Status400BadRequest)]
-    public IResult Get()
+    public IResult GetRedditPostsForLastMonth(int limit = 5)
     {
-        return Results.Ok(_redditHandler.ProcessPosts(5));
+        return Results.Ok(_redditHandler.GetPostFromLastMonth(limit));
+    }
+    
+    [HttpGet("2024posts")]
+    [ProducesResponseType(typeof(IEnumerable<RedditPostInfo>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(void), StatusCodes.Status400BadRequest)]
+    public IResult GetRedditPostsForLastYear(int limit = 1000, bool strictLimit = false, int? month = null)
+    {
+        return Results.Ok(_redditHandler.GetPostsFor2024(limit, strictLimit, month));
     }
 }

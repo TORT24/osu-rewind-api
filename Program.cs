@@ -14,6 +14,9 @@ builder.Configuration.AddUserSecrets<RedditHandler>();
 
 var app = builder.Build();
 
+var redditHandler = app.Services.GetRequiredService<RedditHandler>();
+redditHandler.StatusCheck();
+
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
