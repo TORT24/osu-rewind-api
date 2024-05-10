@@ -39,9 +39,8 @@ public class RedditHandler
             throw new InvalidOperationException("Either you didn't define your Reddit credential or idk", ex);
         }
     }
-    public string? GetLinkFromBotComment(Post post, string reference)
+    public string? GetLinkFromBotComment(string commentBody, string reference)
     {
-        string commentBody = post.Comments.GetTop(limit: 1)[0].Body;
         MatchCollection matches = _linkRegex.Matches(commentBody);
         foreach (Match match in matches)
         {
@@ -61,16 +60,20 @@ public class RedditHandler
     }
     public IEnumerable<RedditPostInfo> ProcessPosts(IEnumerable<Post> posts)
     {
-        return posts.Select(post => new RedditPostInfo
+        return posts.Select(post =>
         {
-            Description = post.Title,
-            Type = post.Listing.LinkFlairText,
-            VideoLink = GetLinkFromBotComment(post, "https://youtu"),
-            RedditLink = "https://www.reddit.com" + post.Permalink,
-            MapLink = GetLinkFromBotComment(post, "https://osu.ppy.sh/b/"),
-            Pp = GetPpFromTitle(post.Title),
-            ReplayLink = null,
-            DatePosted = post.Created,
+            var topCommentBody = post.Comments.GetTop(limit: 1)[0].Body;
+            return new RedditPostInfo
+            {
+                Description = post.Title,
+                Type = post.Listing.LinkFlairText,
+                VideoLink = GetLinkFromBotComment(topCommentBody, "https://youtu"),
+                RedditLink = "https://www.reddit.com" + post.Permalink,
+                MapLink = GetLinkFromBotComment(topCommentBody, "https://osu.ppy.sh/b/"),
+                Pp = GetPpFromTitle(post.Title),
+                ReplayLink = null,
+                DatePosted = post.Created,
+            };
         });
     }
 
@@ -114,7 +117,7 @@ public class RedditHandler
             {
                 remainingLimit = 50; // doing this to reduce the number of requests to reddit api
             }
-            Console.WriteLine("Posts parsed: " + allPosts.Count);
+            Console.WriteLine("Posts parsed: " + allPosts.Count + "/" + limit);
         }
         return strictLimit ? allPosts.Take(limit) : allPosts;
     }
