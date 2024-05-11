@@ -11,9 +11,10 @@ public class RedditHandler
     private readonly Regex _ppRegex;
     private readonly Regex _linkRegex;
     private readonly Subreddit _osugame;
+    private readonly ILogger<RedditHandler> _logger;
 
 
-    public RedditHandler(IConfiguration configuration)
+    public RedditHandler(IConfiguration configuration, ILogger<RedditHandler> logger)
     {
         _configuration = configuration;
         _reddit = new RedditClient(
@@ -24,6 +25,7 @@ public class RedditHandler
         _ppRegex = new Regex(@"\b(\d+pp)\b");
         _linkRegex = new Regex(@"\b(https?://[^\s'""\[\]]+)\b");
         _osugame = _reddit.Subreddit("osugame");
+        _logger = logger;
 
     }
 
@@ -31,8 +33,8 @@ public class RedditHandler
     {
         try
         {
-            Console.WriteLine("Checking if API works:");
-            Console.WriteLine(_osugame.Posts.GetTop(t: "month", limit: 1)[0].Title);
+            _logger.LogInformation("Checking if API works:");
+            _logger.LogInformation(_osugame.Posts.GetTop(t: "month", limit: 1)[0].Title);
         }
         catch (Exception ex)
         {
@@ -77,7 +79,7 @@ public class RedditHandler
         });
     }
 
-    public List<RedditPostInfo> GetPostFromLastMonth(int limit)
+    public List<RedditPostInfo> GetPostsFromLastMonth(int limit)
     {
         List<RedditPostInfo> allPosts = [];
         string lastPostId = string.Empty;
@@ -88,6 +90,7 @@ public class RedditHandler
             lastPostId = "t3_" + posts.Last().Id;
             remainingLimit -= posts.Count;
             allPosts.AddRange(ProcessPosts(posts));
+            _logger.LogInformation("{Time}: Posts parsed: {ParsedCount}/{Limit}", DateTime.Now.ToLongTimeString(), allPosts.Count, limit);
         }
 
         return allPosts;
@@ -117,7 +120,7 @@ public class RedditHandler
             {
                 remainingLimit = 50; // doing this to reduce the number of requests to reddit api
             }
-            Console.WriteLine("Posts parsed: " + allPosts.Count + "/" + limit);
+            _logger.LogInformation("{Time}: Posts parsed: {ParsedCount}/{Limit}", DateTime.Now.ToLongTimeString(), allPosts.Count, limit);
         }
         return strictLimit ? allPosts.Take(limit) : allPosts;
     }
