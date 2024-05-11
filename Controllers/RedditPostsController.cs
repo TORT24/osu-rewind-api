@@ -19,14 +19,25 @@ public class RedditPostsController : ControllerBase
     [ProducesResponseType(typeof(void), StatusCodes.Status400BadRequest)]
     public IResult GetRedditPostsForLastMonth(int limit = 5)
     {
-        return Results.Ok(_redditHandler.GetPostFromLastMonth(limit));
+        if (limit < 1 || limit > 5000){
+            return Results.BadRequest("Choose limit between 1 and 5000");   
+        }
+        return Results.Ok(_redditHandler.GetPostsFromLastMonth(limit));
     }
     
     [HttpGet("2024posts")]
     [ProducesResponseType(typeof(IEnumerable<RedditPostInfo>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(void), StatusCodes.Status400BadRequest)]
-    public IResult GetRedditPostsForLastYear(int limit = 1000, bool strictLimit = false, int? month = null)
+    public IResult GetPostsFor2024(int limit = 1000, bool strictLimit = false, int? month = null)
     {
+        if (month != null & (month > DateTime.Now.Month || month < 1))
+        {
+            return Results.BadRequest($"Choose month betwen 1 and {DateTime.Now.Month}");
+        }
+        if (limit < 1 || limit > 5000)
+        {
+            return Results.BadRequest("Choose limit between 1 and 5000");
+        }
         return Results.Ok(_redditHandler.GetPostsFor2024(limit, strictLimit, month));
     }
 }
