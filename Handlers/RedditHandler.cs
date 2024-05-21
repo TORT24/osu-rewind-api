@@ -26,7 +26,6 @@ public class RedditHandler
         _linkRegex = new Regex(@"\b(https?://[^\s'""\[\]]+)\b");
         _osugame = _reddit.Subreddit("osugame");
         _logger = logger;
-
     }
 
     public void StatusCheck()
