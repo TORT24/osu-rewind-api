@@ -5,7 +5,7 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <InvariantGlobalization>true</InvariantGlobalization>
-    <UserSecretsId>3fa3e930-298d-4c22-92c9-c98e61b9b25f</UserSecretsId>
+    <UserSecretsId>RewindApiKeys</UserSecretsId>
   </PropertyGroup>
 
   <ItemGroup>
