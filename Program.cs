@@ -1,4 +1,4 @@
-using ORewindApi;
+using ORewindApi.Handlers;
 using Middleware.SwaggerAuth;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -12,6 +12,10 @@ builder.Services.AddSwaggerGen();
 
 builder.Services.AddSingleton<RedditHandler>();
 builder.Configuration.AddUserSecrets<RedditHandler>();
+builder.Services.AddSingleton<OsuApiHandler>();
+builder.Configuration.AddUserSecrets<OsuApiHandler>();
+builder.Services.AddHttpClient<OsuApiHandler>();
+
 
 var app = builder.Build();
 
