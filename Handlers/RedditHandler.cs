@@ -1,6 +1,8 @@
-namespace ORewindApi;
+namespace ORewindApi.Handlers;
 using Reddit;
 using Reddit.Controllers;
+using System.Collections.Concurrent;
+using System.Diagnostics;
 using System.Text.RegularExpressions;
 
 
@@ -20,7 +22,8 @@ public class RedditHandler
         _reddit = new RedditClient(
             appId: _configuration["Reddit:AppId"],
             appSecret: _configuration["Reddit:AppSecret"],
-            refreshToken: _configuration["Reddit:RefreshToken"]
+            refreshToken: _configuration["Reddit:RefreshToken"],
+            accessToken: _configuration["Reddit:AccessToken"]
         );
         _ppRegex = new Regex(@"\b(\d+pp)\b");
         _linkRegex = new Regex(@"\b(https?://[^\s'""\[\]]+)\b");
@@ -61,10 +64,12 @@ public class RedditHandler
     }
     public IEnumerable<RedditPostInfo> ProcessPosts(IEnumerable<Post> posts)
     {
-        return posts.Select(post =>
+        var postInfos = new ConcurrentBag<RedditPostInfo>();
+        // Using Parallel.ForEach for concurrent processing
+        Parallel.ForEach(posts, post =>
         {
             var topCommentBody = post.Comments.GetTop(limit: 1)[0].Body;
-            return new RedditPostInfo
+            var redditPostInfo = new RedditPostInfo
             {
                 Description = post.Title,
                 Type = post.Listing.LinkFlairText,
@@ -75,7 +80,11 @@ public class RedditHandler
                 ReplayLink = null,
                 DatePosted = post.Created,
             };
+            postInfos.Add(redditPostInfo);
         });
+
+        // Stop the stopwatch and log the elapsed time
+        return postInfos;
     }
 
     public List<RedditPostInfo> GetPostsFromLastMonth(int limit)
@@ -83,6 +92,9 @@ public class RedditHandler
         List<RedditPostInfo> allPosts = [];
         string lastPostId = string.Empty;
         int remainingLimit = limit;
+        // Initialize the stopwatch
+        Stopwatch stopwatch = new Stopwatch();
+        stopwatch.Start();
         while (remainingLimit > 0)
         {
             var posts = _osugame.Posts.GetTop(t: "month", limit: remainingLimit, after: lastPostId);
@@ -91,7 +103,8 @@ public class RedditHandler
             allPosts.AddRange(ProcessPosts(posts));
             _logger.LogInformation("{Time}: Posts parsed: {ParsedCount}/{Limit}", DateTime.Now.ToLongTimeString(), allPosts.Count, limit);
         }
-
+        stopwatch.Stop();
+        _logger.LogInformation("ProcessPosts method completed in {ElapsedMilliseconds} ms", stopwatch.ElapsedMilliseconds);
         return allPosts;
     }
 
