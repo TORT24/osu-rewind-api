@@ -29,7 +29,6 @@ public class OsuApiHandler
         {
             string responseBody = await response.Content.ReadAsStringAsync();
             var responseObj = JsonConvert.DeserializeObject<BeatmapSetResponse>(responseBody);
-            Console.WriteLine(responseObj.Beatmapset_id);
             return responseObj.Beatmapset_id!;
         }
         else
