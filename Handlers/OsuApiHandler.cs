@@ -130,23 +130,27 @@ public class OsuApiHandler
     && (uriResult.Scheme == Uri.UriSchemeHttp || uriResult.Scheme == Uri.UriSchemeHttps);
         return result;
     }
-
-    public class TokenResponse
-    {
-        public required string Access_token { get; set; }
-        public required string Token_type { get; set; }
-        public required int Expires_in { get; set; }
-    }
-    public class BeatmapSetResponse
-    {
-        public required string Beatmapset_id { get; set; }
-    }
+}
+public class TokenResponse
+{
+    public required string Access_token { get; init; }
+    public required string Token_type { get; init; }
+    public required int Expires_in { get; init; }
+}
+public class BeatmapSetResponse
+{
+    public required string Beatmapset_id { get; set; }
 }
 
 public class UserInfoResponse
 {
-    public required string Avatar_url { get; set; }
-    public required string Username { get; set; }
-    public required int Id { get; set; }
+    public required string Avatar_url { get; init; }
+    public required string Username { get; init; }
+    public required int Id { get; init; }
 }
 
+public class SuggestResponse
+{
+    public string? BeatmapSetResponse{ get; init; }
+    public UserInfoResponse? UserInfoResponse{ get; init; }
+}
