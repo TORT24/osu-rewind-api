@@ -21,6 +21,9 @@ var app = builder.Build();
 
 var redditHandler = app.Services.GetRequiredService<RedditHandler>();
 redditHandler.StatusCheck();
+// var osuHandler = app.Services.GetRequiredService<OsuApiHandler>();
+// var test = await osuHandler.GetUserInfo("fsfsdadsfafdsgdfsdsfdsffsdsdfdsf");
+// Console.WriteLine(test.Username);
 
 app.UseAuthorization();
 app.UseSwaggerAuth();

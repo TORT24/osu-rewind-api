@@ -32,4 +32,23 @@ public class OsuApiController : ControllerBase
             return BadRequest("Request failed with this message: " + ex.Message);
         }
     }
+    [HttpGet("userosuinfo")]
+    [ProducesResponseType(typeof(UserInfoResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(void), StatusCodes.Status400BadRequest)]
+    public async Task<IActionResult> GetUserOsuInfo(string input)
+    {
+        if (string.IsNullOrEmpty(input) || input.Length > 35)
+        {
+            return BadRequest("Something wrong with your id");
+        }
+        try
+        {
+            UserInfoResponse result = await _osuHandler.GetUserInfo(input);
+            return Ok(result);
+        }
+        catch (Exception ex)
+        {
+            return BadRequest("Request failed with this message: " + ex.Message);
+        }
+    }
 }

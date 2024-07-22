@@ -19,6 +19,34 @@ public class OsuApiHandler
         _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _accessToken);
     }
 
+    public async Task<UserInfoResponse> GetUserInfo(string input)
+    {
+        bool inputIsLink = CheckStringForLink(input);
+        string user;
+        string keyType = inputIsLink ? "id" : "username";
+        if (inputIsLink)
+        {
+            var splitLink = input.Split("/");
+            user = splitLink[^1].Length > 0 ? splitLink[^1] : splitLink[^2];
+        }
+        else
+            user = input;
+        await RefreshAccessTokenIfNeededAsync();
+        string endpoint = $"users/{user}?key={keyType}";
+        using var requestMessage = new HttpRequestMessage(HttpMethod.Get, endpoint);
+        var response = await _httpClient.SendAsync(requestMessage);
+        if (response.IsSuccessStatusCode)
+        {
+            string responseBody = await response.Content.ReadAsStringAsync();
+            var responseObj = JsonConvert.DeserializeObject<UserInfoResponse>(responseBody);
+            return responseObj;
+        }
+        else
+        {
+            throw new Exception("Request failed with status code: " + response.StatusCode);
+        }
+    }
+
     public async Task<string> GetBeatmapsetIdFromDiff(string beatmapId)
     {
         await RefreshAccessTokenIfNeededAsync();
@@ -94,6 +122,15 @@ public class OsuApiHandler
             throw new Exception("Request failed with status code: " + response.StatusCode);
         }
     }
+
+    public bool CheckStringForLink(string input)
+    {
+        Uri? uriResult;
+        bool result = Uri.TryCreate(input, UriKind.Absolute, out uriResult)
+    && (uriResult.Scheme == Uri.UriSchemeHttp || uriResult.Scheme == Uri.UriSchemeHttps);
+        return result;
+    }
+
     public class TokenResponse
     {
         public required string Access_token { get; set; }
@@ -104,5 +141,12 @@ public class OsuApiHandler
     {
         public required string Beatmapset_id { get; set; }
     }
+}
+
+public class UserInfoResponse
+{
+    public required string Avatar_url { get; set; }
+    public required string Username { get; set; }
+    public required int Id { get; set; }
 }
 
