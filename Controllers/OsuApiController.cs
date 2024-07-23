@@ -13,18 +13,18 @@ public class OsuApiController : ControllerBase
         _logger = logger;
         _osuHandler = osuHandler;
     }
-    [HttpGet("beatmapsetidfromdiffid")]
+    [HttpGet("verifybeatmap")]
     [ProducesResponseType(typeof(string), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(void), StatusCodes.Status400BadRequest)]
-    public async Task<IActionResult> GetBeatmapsetIdFromDiffEndpoint(string id)
+    public async Task<IActionResult> VerifyBeatmap(string url)
     {
-        if (string.IsNullOrEmpty(id) || id.Length > 9)
+        if (string.IsNullOrEmpty(url) || url.Length > 60)
         {
-            return BadRequest("Something wrong with your id");
+            return BadRequest("Something wrong with your url");
         }
         try
         {
-            string result = await _osuHandler.GetBeatmapsetIdFromDiff(id);
+            string result = await _osuHandler.VerifyBeatmap(url);
             return Ok(result);
         }
         catch (Exception ex)
@@ -54,28 +54,28 @@ public class OsuApiController : ControllerBase
     [HttpGet("handleosuinfo")]
     [ProducesResponseType(typeof(SuggestResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(void), StatusCodes.Status400BadRequest)]
-    public async Task<IActionResult> HandleOsuInfoEndpoint(string? mapDiffID, string? user)
+    public async Task<IActionResult> HandleOsuInfoEndpoint(string? map, string? user)
     {
         string? beatmapSetResponse = null;
         UserInfoResponse? userInfoResponse = null;
-        if (string.IsNullOrEmpty(mapDiffID) && string.IsNullOrEmpty(user))
+        if (string.IsNullOrEmpty(map) && string.IsNullOrEmpty(user))
         {
             return BadRequest("There's no inputs");
         }
-        if (user?.Length > 35 || mapDiffID?.Length > 9)
+        if (user?.Length > 45 || map?.Length > 60)
         {
             return BadRequest("Your inputs suck");
         }
         try
         {
-            if (!string.IsNullOrEmpty(mapDiffID))
-                beatmapSetResponse = await _osuHandler.GetBeatmapsetIdFromDiff(mapDiffID);
+            if (!string.IsNullOrEmpty(map))
+                beatmapSetResponse = await _osuHandler.VerifyBeatmap(map);
             if (!string.IsNullOrEmpty(user))
                 userInfoResponse = await _osuHandler.GetUserInfo(user);
             var suggestResponse = new SuggestResponse()
             {
-                BeatmapSetResponse = beatmapSetResponse,
-                UserInfoResponse = userInfoResponse
+                BeatMapSetId = beatmapSetResponse,
+                UserInfo = userInfoResponse
             };
             return Ok(suggestResponse);
         }

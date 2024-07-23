@@ -19,6 +19,44 @@ public class OsuApiHandler
         _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _accessToken);
     }
 
+    public async Task<string> VerifyBeatmap(string url)
+    {
+        string mapsetId;
+        if (CheckStringForLink(url) && !string.IsNullOrEmpty(url))
+        {
+            url = url.EndsWith('/') ? url[..^1] : url;
+            if (url.Contains("/beatmapsets/"))
+            {
+                var splitedLink = url.Split('/');
+                int mapIdIndex = Array.FindIndex(splitedLink, x => x.Equals("beatmapsets")) + 1;
+                mapsetId = splitedLink[mapIdIndex];
+                await RefreshAccessTokenIfNeededAsync();
+                string endpoint = $"beatmapsets/{mapsetId}";
+                using var requestMessage = new HttpRequestMessage(HttpMethod.Get, endpoint);
+                var response = await _httpClient.SendAsync(requestMessage);
+                if (response.IsSuccessStatusCode)
+                {
+                    string responseBody = await response.Content.ReadAsStringAsync();
+                    var responseObj = JsonConvert.DeserializeObject<BeatmapsetLookupResponse>(responseBody);
+                    mapsetId = responseObj.Id;
+                }
+                else
+                    throw new Exception("Request failed with status code: " + response.StatusCode);
+            }
+            else if (url.Contains("/b/") || url.Contains("/beatmaps/"))
+            {
+                var splitedLink = url.Split('/');
+                var diffId = splitedLink[^1];
+                mapsetId = await GetBeatmapsetIdFromDiff(diffId);
+            }
+            else
+            {
+                throw new Exception("That's a wrong link");
+            }
+            return mapsetId;
+        }
+        throw new Exception("There's no link in your input");
+    }
     public async Task<UserInfoResponse> GetUserInfo(string input)
     {
         bool inputIsLink = CheckStringForLink(input);
@@ -26,8 +64,10 @@ public class OsuApiHandler
         string keyType = inputIsLink ? "id" : "username";
         if (inputIsLink)
         {
+            input = input.EndsWith('/') ? input[..^1] : input;
             var splitLink = input.Split("/");
-            user = splitLink[^1].Length > 0 ? splitLink[^1] : splitLink[^2];
+            // if link ends with "osu" instead of id, we take value from pre-last index
+            user = int.TryParse(splitLink[^1], out _) ? splitLink[^1] : splitLink[^2];
         }
         else
             user = input;
@@ -56,7 +96,7 @@ public class OsuApiHandler
         if (response.IsSuccessStatusCode)
         {
             string responseBody = await response.Content.ReadAsStringAsync();
-            var responseObj = JsonConvert.DeserializeObject<BeatmapSetResponse>(responseBody);
+            var responseObj = JsonConvert.DeserializeObject<BeatmapLookupResponse>(responseBody);
             return responseObj.Beatmapset_id!;
         }
         else
@@ -137,7 +177,7 @@ public class TokenResponse
     public required string Token_type { get; init; }
     public required int Expires_in { get; init; }
 }
-public class BeatmapSetResponse
+public class BeatmapLookupResponse
 {
     public required string Beatmapset_id { get; set; }
 }
@@ -151,6 +191,11 @@ public class UserInfoResponse
 
 public class SuggestResponse
 {
-    public string? BeatmapSetResponse{ get; init; }
-    public UserInfoResponse? UserInfoResponse{ get; init; }
+    public string? BeatMapSetId { get; init; }
+    public UserInfoResponse? UserInfo { get; init; }
+}
+
+public class BeatmapsetLookupResponse
+{
+    public required string Id { get; init; }
 }
