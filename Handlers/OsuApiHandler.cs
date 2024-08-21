@@ -140,12 +140,12 @@ public class OsuApiHandler
     private async Task<TokenResponse> GetTokenAsync(string clientID, string secretKey)
     {
         string apiUrl = "https://osu.ppy.sh/oauth/token";
-        var requestData = new List<KeyValuePair<string, string>>
+        var requestData = new Dictionary<string, string>
         {
-            new ("client_id", clientID),
-            new ("client_secret", secretKey),
-            new ("grant_type", "client_credentials"),
-            new ("scope", "public")
+            { "client_id", clientID },
+            { "client_secret", secretKey },
+            { "grant_type", "client_credentials" },
+            { "scope", "public" }
         };
         var content = new FormUrlEncodedContent(requestData);
         using HttpClient http = new();
