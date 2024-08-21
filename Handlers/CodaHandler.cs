@@ -186,6 +186,7 @@ public class Suggestion
     public required string SourceLink { get; init; }
     public required string Date { get; init; }
     public string? MapLink { get; init; }
+    public string? Player { get; init; }
     public string? PlayerLink { get; init; }
     public string? Pp { get; init; }
     public string? MadeBy { get; init; }
